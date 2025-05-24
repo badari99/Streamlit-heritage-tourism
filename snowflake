@@ -1,0 +1,41 @@
+create database my_project
+
+create schema my_project_schema
+
+
+CREATE OR REPLACE TABLE Domestic_vs_foreign (
+    YEAR NUMBER(4) NOT NULL,
+    DTV_in_lakh NUMBER(10,1) NOT NULL,  -- Domestic Total Value
+    FTV_in_lakh NUMBER(10,1) NOT NULL   -- Foreign Total Value
+);
+
+
+--DELETE FROM Domestic_vs_foreign;
+
+select * FROM Domestic_vs_foreign;
+
+CREATE OR REPLACE TABLE foreignV23_24 (
+    MONTH string NOT NULL,
+    Y2023_in_lakh NUMBER(10,2) ,  
+    Y2024_in_lakh NUMBER(10,2)   
+);
+
+MY_PROJECT.MY_PROJECT_SCHEMA.OFFERED_COURSES
+
+CREATE OR REPLACE TABLE offered_courses (
+  center string not null,
+  courses string not null
+  
+);
+select * from offered_courses
+
+select * from foreignV23_24
+
+DELETE FROM foreignV23_24
+WHERE month = 'Grand Total';
+
+select sum(Y2023_IN_LAKH) as foreigner_2023 , sum(Y2024_IN_LAKH) as foreigner_2024 from foreignV23_24
+
+
+
+
