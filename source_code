@@ -1,0 +1,152 @@
+import streamlit as st
+import snowflake.connector
+import pandas as pd
+
+st.set_page_config(page_title="Indian Heritage and Tourism", layout="wide")
+
+# Title
+st.title("Indian Heritage Explorer and Toursim Info")
+st.markdown("Discover the cultural richness, monuments, festivals, and history of India.")
+
+# Section 1: Monuments
+st.subheader("🏛️ Famous Indian Heritage Sites")
+
+heritage_sites = [
+    {
+        "name": "Taj Mahal",
+        "location": "Agra, Uttar Pradesh",
+        "description": "A white marble mausoleum built by Mughal Emperor Shah Jahan in memory of his wife Mumtaz Mahal.",
+        "image": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nqUhrIvQS6JR-SNB1vLWqyVVJHpXfRS7vu21eN0zIH7_b2d4YvQFvfZQlLXxL-7rqgw7CowfRfj7FV6m0CeCH76iobWlULzLypiqF80ZD8XtPa5bE86lIjk2OmapqDeKMwtwJ-c=s1360-w1360-h1020-rw"
+    },
+    {
+        "name": "Hampi",
+        "location": "Karnataka",
+        "description": "Ruins of the capital of the Vijayanagara Empire, known for its ancient temples and monuments.",
+        "image": "https://www.alphonsostories.com/AlphonSoStoriesImages/downloads/Hampi-Pride-of-the-Vijayanagara-Empire-Image-02.jpg"
+    }
+]
+
+cols = st.columns(len(heritage_sites))
+for i, site in enumerate(heritage_sites):
+    with cols[i]:
+        st.image(site["image"], use_container_width=True)
+        st.markdown(f"**{site['name']}**\n\n📍 {site['location']}")
+        st.caption(site["description"])
+
+# Section 2: Festivals
+st.subheader("🎉 Festivals of India")
+st.markdown("""
+India celebrates a vast variety of festivals that reflect its diverse culture:
+
+- 🪔 **Diwali** – Festival of lights, celebrated by Hindus, Jains, and Sikhs.
+- 🏮 **Holi** – Festival of colors, marking spring and love.
+- 🌕 **Eid** – Celebrated by Muslims with prayer and feasts.
+- 🎄 **Christmas** – Celebrated across India, especially in Goa and Kerala.
+- 🎎 **Navratri & Durga Puja** – Celebrating goddess Durga and the victory of good over evil.
+""")
+
+# Section 3: Map of UNESCO Heritage Sites (Optional)
+st.subheader("🗺️ UNESCO Heritage Sites Map (Sample)")
+try:
+    import pandas as pd
+    import pydeck as pdk
+
+    heritage_map_data = pd.DataFrame([
+        ["Taj Mahal", 27.1751, 78.0421],
+        ["Hampi", 15.3350, 76.4600],
+        ["Sun Temple", 19.8876, 86.0945]
+    ], columns=["Site", "lat", "lon"])
+
+    st.pydeck_chart(pdk.Deck(
+        initial_view_state=pdk.ViewState(latitude=21, longitude=78, zoom=4),
+        layers=[
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=heritage_map_data,
+                get_position='[lon, lat]',
+                get_radius=50000,
+                get_fill_color=[255, 100, 100],
+                pickable=True
+            )
+        ]
+    ))
+except Exception as e:
+    st.warning(f"Map could not be loaded: {e}")
+
+def get_connection():
+    return snowflake.connector.connect(
+        user=st.secrets["snowflake"]["user"],
+        password=st.secrets["snowflake"]["password"],
+        account=st.secrets["snowflake"]["account"],
+        #warehouse=st.secrets["snowflake"]["warehouse"],
+        database=st.secrets["snowflake"]["database"],
+        schema=st.secrets["snowflake"]["schema"]
+    )
+
+def load_snowflake_data():
+    conn = get_connection()
+    query = "SELECT YEAR,DTV_IN_LAKH,FTV_IN_LAKH FROM Domestic_vs_foreign"  # Change table name if needed
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+def load_snowflake_data2():
+    conn = get_connection()
+    query = "SELECT * FROM offered_courses"  # Change table name if needed
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+def load_snowflake_data3():
+    conn = get_connection()
+    query = "select sum(Y2023_IN_LAKH) as foreigner_2023 from foreignV23_24"  # Change table name if needed
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+def load_snowflake_data4():
+    conn = get_connection()
+    query = "select sum(Y2024_IN_LAKH) as foreigner_2024 from foreignV23_24"  # Change table name if needed
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+    # --- DISPLAY DATA FROM SNOWFLAKE ---
+st.title("From Snowflake DB")
+st.subheader("📋 Domestic Visitors vs Foreign Visitors  from 2019-2022")
+try:
+    snowflake_df = load_snowflake_data()
+    st.dataframe(snowflake_df)
+except Exception as e:
+    st.error(f"Failed to load data from Snowflake: {e}")
+
+st.subheader("Total number of Foreign Visitors in the year 2023")
+
+try:
+    snowflake_df3 = load_snowflake_data3()
+    st.dataframe(snowflake_df3)
+except Exception as e:
+    st.error(f"Failed to load data from Snowflake: {e}")
+
+st.subheader("Total number of Foreign Visitors in the year 2024")
+try:
+    snowflake_df4 = load_snowflake_data4()
+    st.dataframe(snowflake_df4)
+except Exception as e:
+    st.error(f"Failed to load data from Snowflake: {e}")
+
+st.subheader("Courses Offered in the tourism")
+
+try:
+    snowflake_df2 = load_snowflake_data2()
+    st.dataframe(snowflake_df2)
+except Exception as e:
+    st.error(f"Failed to load data from Snowflake: {e}")
+
+
+
+# Footer
+st.markdown("---")
+st.caption("Created with ❤️ using Streamlit | Source: UNESCO, Govt of India, Wikipedia and Datasets from Data.gov.in")
+
+
